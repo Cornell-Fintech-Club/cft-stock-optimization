@@ -11,6 +11,7 @@ def fetch_and_store_data(ticker):
     url = f"{BASE_URL}?function=TIME_SERIES_DAILY&symbol={ticker}&apikey={ALPHA_VANTAGE_API_KEY}"
     response = requests.get(url)
     data = response.json()
+    # print(data)
     
     # Check if data exists and handle missing data gracefully
     if "Time Series (Daily)" not in data:

@@ -13,9 +13,9 @@ main = Blueprint("main", __name__)
 
 @main.route("/update_data", methods=["GET"])
 def update_stock_data():
-    tickers = ["AAPL", "GOOG", "MSFT"]  # example tickers
-    for ticker in tickers:
-        fetch_and_store_data(ticker)  # Call the function to fetch and store data
+    # tickers = ["AAPL", "GOOG", "MSFT"]  # example tickers
+    # for ticker in tickers:
+    #     fetch_and_store_data(ticker)  # Call the function to fetch and store data
     ticker = request.args.get("ticker")
     if not ticker:
         return jsonify({"error":"Incorrectly formatted Ticker symobl"}), 400
