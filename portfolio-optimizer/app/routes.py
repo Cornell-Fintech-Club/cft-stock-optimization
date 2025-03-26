@@ -52,7 +52,11 @@ def get_ohlc(ticker):
 
     data = query.all()
     if not data:
-        return jsonify({"error": "Data not found for this ticker and date range."}), 404
+        fetch_and_store_data(ticker)
+        db.session.commit()
+        data = OHLCData.query.filter_by(ticker=ticker).all()
+        if not data:
+            return jsonify({"error": "Data not found for this ticker and date range."}), 404
     
     return jsonify([{
         'id': d.id,
