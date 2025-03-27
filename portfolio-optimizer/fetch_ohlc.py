@@ -5,10 +5,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-# Your Alpha Vantage API key
 ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 
-# Database connection details
 DB_PARAMS = {
     "dbname": "portfolio_optimizer",
     "user": "gregoryparent",
@@ -27,7 +25,7 @@ def fetch_ohlc_data(ticker, date):
     params = {
         "function": "TIME_SERIES_INTRADAY",
         "symbol": ticker,
-        "interval": "5min",  # You can adjust this as needed (1min, 15min, etc.)
+        "interval": "5min",  # Can adjust time range here
         "apikey": ALPHA_VANTAGE_API_KEY
     }
     # print("Key Debug",ALPHA_VANTAGE_API_KEY)
@@ -38,12 +36,12 @@ def fetch_ohlc_data(ticker, date):
     # print("API response:", data)
 
 
-    return data['Time Series (5min)']  # Adjust this if you want a different time series
+    return data['Time Series (5min)']  # can change to adjust time range
 
 # Insert data into TimescaleDB
 def insert_ohlc_data(data, ticker):
     for timestamp, candle in data.items():
-        timestamp = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")  # Convert timestamp to datetime
+        timestamp = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")  
         cur.execute(
             """
             INSERT INTO ohlc_data (ticker, timestamp, open, high, low, close, volume)
@@ -54,10 +52,10 @@ def insert_ohlc_data(data, ticker):
         )
     conn.commit()
 
-# Fetch and insert today's data for AAPL
-date_today = datetime.date.today().isoformat()
-ohlc_data = fetch_ohlc_data("AAPL", date_today)
-insert_ohlc_data(ohlc_data, "AAPL")
+# Example Fetching and inserting today's data for AAPL
+# date_today = datetime.date.today().isoformat()
+# ohlc_data = fetch_ohlc_data("AAPL", date_today)
+# insert_ohlc_data(ohlc_data, "AAPL")
 
 print("Data inserted successfully!")
 

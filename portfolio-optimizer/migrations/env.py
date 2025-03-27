@@ -17,21 +17,17 @@ DB_NAME = "portfolio_optimizer"
 database_url = f"postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 
-# Import your model’s MetaData object here
-from app.models import db  # This should be your SQLAlchemy instance
+from app.models import db  
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# Setup logging
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.runtime.migration')
 
-# Use your application's MetaData object
 target_metadata = db.metadata
 
-# Add your database URL here
 config.set_main_option('sqlalchemy.url', database_url)
 
 def run_migrations_offline():
