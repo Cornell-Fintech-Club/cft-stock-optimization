@@ -60,7 +60,7 @@ def get_ohlc(ticker):
         # print(f"No data found for {ticker} in range {start_date} to {end_date}. Fetching new data...")
         # print(existing_data)
         if not existing_data:
-            fetch_and_store_data(ticker)
+            fetch_and_store_data(ticker,start_date=start_date,end_date=end_date)
             db.session.commit()
 
             query = OHLCData.query.filter(OHLCData.ticker == ticker)
