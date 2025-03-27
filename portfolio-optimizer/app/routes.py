@@ -44,19 +44,33 @@ def get_ohlc(ticker):
             return jsonify({"error": "Invalid end_date format. Use YYYY-MM-DD."}), 400
 
     # data = OHLCData.query.filter_by(ticker=ticker).all()
-    query = OHLCData.query.filter_by(ticker=ticker)
+    # query = OHLCData.query.filter_by(ticker=ticker)
+
+    query = OHLCData.query.filter(OHLCData.ticker == ticker)
+
     if start_date:
         query = query.filter(OHLCData.timestamp >= start_date)
     if end_date:
         query = query.filter(OHLCData.timestamp <= end_date)
 
     data = query.all()
+    
     if not data:
-        fetch_and_store_data(ticker)
-        db.session.commit()
-        data = OHLCData.query.filter_by(ticker=ticker).all()
-        if not data:
-            return jsonify({"error": "Data not found for this ticker and date range."}), 404
+        existing_data = OHLCData.query.filter_by(ticker=ticker).first()
+        # print(f"No data found for {ticker} in range {start_date} to {end_date}. Fetching new data...")
+        # print(existing_data)
+        if not existing_data:
+            fetch_and_store_data(ticker,start_date=start_date,end_date=end_date)
+            db.session.commit()
+
+            query = OHLCData.query.filter(OHLCData.ticker == ticker)
+            if start_date:
+                query = query.filter(OHLCData.timestamp >= start_date)
+            if end_date:
+                query = query.filter(OHLCData.timestamp <= end_date)
+            data = query.all()
+            if not data:
+                return jsonify({"error": "Data not found for this ticker and date range."}), 404
     
     return jsonify([{
         'id': d.id,
