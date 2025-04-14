@@ -14,7 +14,7 @@ ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 # ----------------------------
 
 def fetch_daily_adjusted(symbol: str) -> pd.Series:
-    """Fetch daily close prices for a given stock symbol (free-tier safe)."""
+    """Fetch daily close prices for a given stock symbol"""
     params = {
         "function": "TIME_SERIES_DAILY",
         "symbol": symbol,

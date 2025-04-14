@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 load_dotenv()
-from data import (
+from analytics.data import (
     fetch_daily_adjusted,
     fetch_multiple_series,
     calculate_daily_returns,

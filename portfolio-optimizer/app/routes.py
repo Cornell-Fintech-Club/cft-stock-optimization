@@ -5,9 +5,21 @@ from app.scraper import fetch_and_store_data
 import os 
 from dotenv import load_dotenv
 load_dotenv()
+import numpy as np
 
 from flask import request
 from datetime import datetime
+
+from analytics.data import fetch_daily_adjusted, fetch_multiple_series, align_price_series
+from analytics.indicators import (
+    calculate_expected_return,
+    calculate_volatility,
+    calculate_sharpe_ratio,
+    calculate_max_drawdown,
+    calculate_var,
+)
+from analytics.portfolio import compute_portfolio_metrics
+
 
 main = Blueprint("main", __name__)
 
@@ -82,3 +94,39 @@ def get_ohlc(ticker):
         "close": d.close,
         "volume": d.volume
     } for d in data]),200
+
+
+
+api = Blueprint("api", __name__)
+
+@api.route("/api/metrics/<symbol>", methods=["GET"])
+def stock_metrics(symbol):
+    try:
+        series = fetch_daily_adjusted(symbol)
+        metrics = {
+            "expected_return": calculate_expected_return(series),
+            "volatility": calculate_volatility(series),
+            "sharpe_ratio": calculate_sharpe_ratio(series),
+            "max_drawdown": calculate_max_drawdown(series),
+            "value_at_risk": calculate_var(series),
+        }
+        return jsonify(metrics)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@api.route("/api/portfolio/metrics", methods=["POST"])
+def portfolio_metrics():
+    try:
+        data = request.json
+        symbols = data["symbols"]              # e.g., ["AAPL", "MSFT", "JNJ"]
+        weights = np.array(data["weights"])    # e.g., [0.4, 0.4, 0.2]
+
+        price_dict = fetch_multiple_series(symbols)
+        price_df = align_price_series(price_dict)
+
+        results = compute_portfolio_metrics(price_df, weights)
+        return jsonify(results)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

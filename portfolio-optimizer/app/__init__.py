@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 
+
 db = SQLAlchemy()
 
 def create_app():
@@ -13,4 +14,7 @@ def create_app():
     from app.routes import main
     app.register_blueprint(main)
 
+    from app.routes import api
+    app.register_blueprint(api)
+    
     return app
