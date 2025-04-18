@@ -1,1 +1,1 @@
-# cft_portoflio_optimization
+# cft-stock-optimization
