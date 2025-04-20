@@ -1,9 +1,7 @@
 import numpy as np
 import pandas as pd
 
-# ----------------------------
 # Individual Stock Indicators
-# ----------------------------
 
 def calculate_expected_return(prices: pd.Series) -> float:
     """Computes average daily return."""

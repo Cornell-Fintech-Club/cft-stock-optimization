@@ -1,10 +1,5 @@
 import numpy as np
 import pandas as pd
-import requests
-from datetime import datetime
-import os
-from dotenv import load_dotenv
-load_dotenv()
 from analytics.data import (
     fetch_daily_adjusted,
     fetch_multiple_series,
@@ -12,7 +7,6 @@ from analytics.data import (
     calculate_log_returns,
     align_price_series,
 )
-
 from analytics.indicators import (
     calculate_portfolio_expected_return,
     calculate_portfolio_volatility,
@@ -24,17 +18,13 @@ from analytics.indicators import (
     calculate_alpha,
 )
 
+# In-memory cache for SPY
 _market_cache = {}
 
 def get_market_series(symbol="SPY"):
     if symbol not in _market_cache:
         _market_cache[symbol] = fetch_daily_adjusted(symbol)
     return _market_cache[symbol]
-
-
-BASE_URL = "https://www.alphavantage.co/query"
-ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
-
 
 def compute_portfolio_metrics(price_df: pd.DataFrame, weights: np.ndarray, risk_free_rate: float = 0.02) -> dict:
     """
@@ -68,7 +58,8 @@ def compute_portfolio_metrics(price_df: pd.DataFrame, weights: np.ndarray, risk_
         aligned.columns = ["portfolio", "market"]
         beta = calculate_beta(aligned["portfolio"], aligned["market"])
         alpha = calculate_alpha(aligned["portfolio"], aligned["market"], beta, risk_free_rate)
-    except Exception:
+    except Exception as e:
+        print(f"Failed to calculate alpha/beta: {e}")
         beta = None
         alpha = None
 

@@ -1,13 +1,8 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from app.models import OHLCData
 from app import db
 from app.scraper import fetch_and_store_data 
-import os 
-from dotenv import load_dotenv
-load_dotenv()
 import numpy as np
-
-from flask import request
 from datetime import datetime
 
 from analytics.data import fetch_daily_adjusted, fetch_multiple_series, align_price_series
@@ -25,9 +20,6 @@ main = Blueprint("main", __name__)
 
 @main.route("/update_data", methods=["GET"])
 def update_stock_data():
-    # tickers = ["AAPL", "GOOG", "MSFT"]  # example tickers
-    # for ticker in tickers:
-    #     fetch_and_store_data(ticker)  # Call the function to fetch and store data
     ticker = request.args.get("ticker")
     if not ticker:
         return jsonify({"error":"Incorrectly formatted Ticker symobl"}), 400
@@ -55,35 +47,32 @@ def get_ohlc(ticker):
         except ValueError:
             return jsonify({"error": "Invalid end_date format. Use YYYY-MM-DD."}), 400
 
-    # data = OHLCData.query.filter_by(ticker=ticker).all()
-    # query = OHLCData.query.filter_by(ticker=ticker)
-
+    # Query for existing data in the DB
     query = OHLCData.query.filter(OHLCData.ticker == ticker)
-
     if start_date:
         query = query.filter(OHLCData.timestamp >= start_date)
     if end_date:
         query = query.filter(OHLCData.timestamp <= end_date)
 
     data = query.all()
-    
-    if not data:
-        existing_data = OHLCData.query.filter_by(ticker=ticker).first()
-        # print(f"No data found for {ticker} in range {start_date} to {end_date}. Fetching new data...")
-        # print(existing_data)
-        if not existing_data:
-            fetch_and_store_data(ticker,start_date=start_date,end_date=end_date)
-            db.session.commit()
 
-            query = OHLCData.query.filter(OHLCData.ticker == ticker)
-            if start_date:
-                query = query.filter(OHLCData.timestamp >= start_date)
-            if end_date:
-                query = query.filter(OHLCData.timestamp <= end_date)
-            data = query.all()
-            if not data:
-                return jsonify({"error": "Data not found for this ticker and date range."}), 404
-    
+    # If nothing exists for the range, try fetching from yfinance
+    if not data:
+        print(f"No data found for {ticker} in range {start_date} to {end_date}. Fetching from yfinance...")
+        fetch_and_store_data(ticker, start_date=start_date, end_date=end_date)
+        db.session.commit()
+
+        # Retry query after insert
+        query = OHLCData.query.filter(OHLCData.ticker == ticker)
+        if start_date:
+            query = query.filter(OHLCData.timestamp >= start_date)
+        if end_date:
+            query = query.filter(OHLCData.timestamp <= end_date)
+        data = query.all()
+
+        if not data:
+            return jsonify({"error": "Data not found for this ticker and date range."}), 404
+
     return jsonify([{
         'id': d.id,
         "ticker": d.ticker,
@@ -93,8 +82,7 @@ def get_ohlc(ticker):
         "low": d.low,
         "close": d.close,
         "volume": d.volume
-    } for d in data]),200
-
+    } for d in data]), 200
 
 
 api = Blueprint("api", __name__)
