@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import requests
 from datetime import datetime
-import os
-from dotenv import load_dotenv
+
 from data import (
     fetch_daily_adjusted,
     fetch_multiple_series,
@@ -16,15 +15,10 @@ from portfolio import (
     compute_correlation_matrix,
 )
 
-load_dotenv()
-
-BASE_URL = "https://www.alphavantage.co/query"
-ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 
 #Testing script
 
 if __name__ == "__main__":
-    # print(ALPHA_VANTAGE_API_KEY)
     test_symbols = ["AAPL", "MSFT", "JPM", "XOM", "JNJ"]
     try:
         print("Fetching price data...")
