@@ -30,9 +30,7 @@ def calculate_var(prices: pd.Series, confidence_level: float = 0.95) -> float:
     returns = prices.pct_change().dropna()
     return np.percentile(returns, (1 - confidence_level) * 100)
 
-# ----------------------------
 # Portfolio-Level Calculations
-# ----------------------------
 
 def weighted_average(values: list, weights: list) -> float:
     return np.average(values, weights=weights)
