@@ -1,9 +1,10 @@
 from analytics.sector_scraper import scrape_top_100_tickers
+import finviz_test
 
 if __name__ == "__main__":
-    sectors = ["technology", "healthcare", "energy", "consumer_staples", "communication"]
+    sectors = ["technology", "healthcare", "energy", "consumercyclical", "communicationservices"]
 
     for sector in sectors:
-        tickers = scrape_top_100_tickers(sector)
-        print(f"{sector.title()} Sector ({len(tickers)} tickers):")
-        print(tickers[:10], "...\n")
+        tech_tickers = finviz_test.get_finviz_tickers(sector=sector, max_tickers=10)
+        print(f"\nFound {len(tech_tickers)} {sector} tickers:")
+        print(tech_tickers)

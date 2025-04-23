@@ -42,7 +42,9 @@ def fetch_and_store_data(ticker, start_date=None, end_date=None):
                 high=high_price,
                 low=low_price,
                 close=close_price,
-                volume=volume
+                volume=volume,
+                #Temp fill-in
+                sector='None'
             )
         )
 

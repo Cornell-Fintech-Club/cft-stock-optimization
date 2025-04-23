@@ -11,3 +11,4 @@ class OHLCData(db.Model):
     low = db.Column(db.Float, nullable=False)
     close = db.Column(db.Float, nullable=False)
     volume = db.Column(db.Integer, nullable=False)
+    sector = db.Column(db.String(50), nullable=False)

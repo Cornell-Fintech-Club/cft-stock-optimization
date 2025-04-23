@@ -81,7 +81,8 @@ def get_ohlc(ticker):
         "high": d.high,
         "low": d.low,
         "close": d.close,
-        "volume": d.volume
+        "volume": d.volume,
+        "sector": d.sector
     } for d in data]), 200
 
 
