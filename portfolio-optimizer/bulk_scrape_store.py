@@ -11,25 +11,31 @@ engine = create_engine(DB_URL)
 
 #Download OHLC for a single ticker
 def fetch_ohlc_for_ticker(ticker: str) -> pd.DataFrame:
-    df = yf.download(ticker, period="1y", interval="1d", progress=False)
+    yf_ticker = yf.Ticker(ticker)
+    df = yf_ticker.history(period="1y", interval="1d", auto_adjust=False)
+
     if df.empty:
         return pd.DataFrame()
+
     df = df.reset_index()
     df["ticker"] = ticker
+
     return df[["ticker", "Date", "Open", "High", "Low", "Close", "Volume"]]
 
-#Inserting into database 
+
 def store_dataframe(df: pd.DataFrame, sector: str):
     if df.empty:
         return
-    df = df.rename(columns={
-        "Date": "timestamp",
-        "Open": "open",
-        "High": "high",
-        "Low": "low",
-        "Close": "close",
-        "Volume": "volume"
-    })
+
+    df.columns = [col.lower() if isinstance(col, str) else str(col) for col in df.columns]
+    df = df.rename(columns={"date": "timestamp"})
+    
+    df["sector"] = sector
+
+    df = df[["ticker", "timestamp", "open", "high", "low", "close", "volume", "sector"]]
+
+    df.to_sql("ohlc_data", engine, if_exists="append", index=False, method="multi")
+
     df["sector"] = sector
     df.to_sql("ohlc_data", engine, if_exists="append", index=False, method="multi")
 
@@ -52,6 +58,7 @@ def bulk_scrape_and_store():
                 print(f"{i+1:03}: Error for {ticker}: {e}")
             time.sleep(1)  
 
+#smaller testing method
 def bulk_scrape_and_store_tech():
     sector = "technology"
     print(f"\n📊 Processing sector: {sector}")
@@ -71,4 +78,4 @@ def bulk_scrape_and_store_tech():
         time.sleep(1)  
 
 if __name__ == "__main__":
-    bulk_scrape_and_store_tech()
+    bulk_scrape_and_store()
