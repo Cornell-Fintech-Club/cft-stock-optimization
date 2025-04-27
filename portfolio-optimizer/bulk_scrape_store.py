@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 import yfinance as yf
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from analytics.sector_scraper import scrape_top_100_tickers
 from analytics.sector_scraper import SECTOR_FILTERS
 
@@ -41,8 +41,13 @@ def store_dataframe(df: pd.DataFrame, sector: str):
 
 
 def bulk_scrape_and_store():
+
+    with engine.connect() as conn:
+        print("Clearing existing OHLC data...")
+        conn.execute(text("TRUNCATE TABLE ohlc_data RESTART IDENTITY;"))
+        conn.commit()
     for sector in SECTOR_FILTERS:
-        print(f"\n📊 Processing sector: {sector}")
+        print(f"\nProcessing sector: {sector}")
         tickers = scrape_top_100_tickers(sector)
         print(f"Scraped {len(tickers)} tickers for {sector}")
 
