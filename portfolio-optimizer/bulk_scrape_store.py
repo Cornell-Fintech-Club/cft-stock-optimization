@@ -4,6 +4,7 @@ import yfinance as yf
 from sqlalchemy import create_engine, text
 from analytics.sector_scraper import scrape_top_100_tickers
 from analytics.sector_scraper import SECTOR_FILTERS
+from populate_indicators import populate_stock_indicators
 
 DB_URL = "postgresql://gregoryparent:your_password@localhost/portfolio_optimizer"
 engine = create_engine(DB_URL)
@@ -84,3 +85,6 @@ def bulk_scrape_and_store_tech():
 
 if __name__ == "__main__":
     bulk_scrape_and_store()
+    print("Finished Storing Past Year of Data for Top 100 Stocks of Each Sector")
+    print("Now Calculating Indicator Values")
+    populate_stock_indicators()
