@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.models import OHLCData
+from app.models import OHLCData, StockIndicator
 from app import db
 from app.scraper import fetch_and_store_data 
 import numpy as np
@@ -142,6 +142,28 @@ def optimize_portfolio():
         else:
             result = rebalance_portfolio(survey, symbols, weights)
             return jsonify(result), 200 if result.get("success") else 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@api.route("/api/indicator/<symbol>", methods=["GET"])
+def get_stock_indicators(symbol):
+    try:
+        indicator = StockIndicator.query.get(symbol.upper())
+        if not indicator:
+            return jsonify({"error": f"No indicator data found for {symbol}"}), 404
+
+        return jsonify({
+            "ticker": indicator.ticker,
+            "expected_return": indicator.expected_return,
+            "volatility": indicator.volatility,
+            "sharpe_ratio": indicator.sharpe_ratio,
+            "beta": indicator.beta,
+            "alpha": indicator.alpha,
+            "max_drawdown": indicator.max_drawdown,
+            "value_at_risk": indicator.value_at_risk,
+            "diversification_score": indicator.diversification_score
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
