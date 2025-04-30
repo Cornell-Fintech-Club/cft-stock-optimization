@@ -4,6 +4,7 @@ from app import db
 from app.scraper import fetch_and_store_data 
 import numpy as np
 from datetime import datetime
+from optimizers.optimize_rebalance import rebalance_portfolio
 
 from analytics.data import fetch_daily_adjusted, fetch_multiple_series, align_price_series
 from analytics.indicators import (
@@ -119,3 +120,28 @@ def portfolio_metrics():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+api2 = Blueprint("optimizer", __name__)
+
+@api2.route("/api/optimize_portfolio", methods=["POST"])
+def optimize_portfolio():
+    try:
+        data = request.json
+
+        survey = data.get("survey")
+        symbols = data.get("symbols")
+        weights = data.get("weights")
+
+        if not survey or not symbols or not weights:
+            return jsonify({"error": "Missing required fields: survey, symbols, weights"}), 400
+
+        add_assets = survey.get("addAssets", False)
+
+        if add_assets:
+            return jsonify({"message": "Asset addition optimization not yet implemented."}), 501
+        else:
+            result = rebalance_portfolio(survey, symbols, weights)
+            return jsonify(result), 200 if result.get("success") else 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
