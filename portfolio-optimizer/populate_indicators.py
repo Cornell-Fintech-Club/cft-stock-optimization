@@ -12,11 +12,11 @@ from analytics.indicators import (
 import pandas as pd
 from datetime import datetime, timezone
 from sqlalchemy import text
+from app.scraper import fetch_and_store_data
 
 app = create_app()
 
 def fetch_close_prices_and_sector(ticker):
-    """Fetch close prices and sector from ohlc_data for a given ticker."""
     records = (
         OHLCData.query.filter_by(ticker=ticker)
         .order_by(OHLCData.timestamp.asc())
@@ -31,13 +31,22 @@ def fetch_close_prices_and_sector(ticker):
     return close_prices, sector
 
 def fetch_market_prices():
-    """Fetch benchmark (e.g., SPY) close prices for beta/alpha."""
     spy_records = (
         OHLCData.query.filter_by(ticker="SPY")
         .order_by(OHLCData.timestamp.asc())
         .all()
     )
     if not spy_records:
+        print("SPY data not found in database. Fetching now...")
+        fetch_and_store_data("SPY")
+        db.session.commit()
+        spy_records = (
+            OHLCData.query.filter_by(ticker="SPY")
+            .order_by(OHLCData.timestamp.asc())
+            .all()
+        )
+    if not spy_records:
+        print("Failed to retrieve SPY data after fetch attempt.")
         return None
     return pd.Series({r.timestamp: r.close for r in spy_records})
 
@@ -68,10 +77,11 @@ def populate_stock_indicators():
 
                 beta = alpha = None
                 if market_prices is not None:
-                    combined = pd.concat([prices.pct_change(), market_prices.pct_change()], axis=1).dropna()
+                    combined = pd.concat([prices, market_prices], axis=1, join='inner').pct_change().dropna()
                     combined.columns = ["stock", "market"]
-                    beta = calculate_beta(combined["stock"], combined["market"])
-                    alpha = calculate_alpha(combined["stock"], combined["market"], beta)
+                    if not combined.empty:
+                        beta = calculate_beta(combined["stock"], combined["market"])
+                        alpha = calculate_alpha(combined["stock"], combined["market"], beta)
 
                 indicator = db.session.get(StockIndicator, ticker)
                 if not indicator:
