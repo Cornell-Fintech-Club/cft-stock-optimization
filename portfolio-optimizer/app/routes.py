@@ -148,7 +148,16 @@ def optimize_portfolio():
             return jsonify({"message": "Asset addition optimization not yet implemented."}), 501
         else:
             result = rebalance_portfolio(survey, symbols, weights)
-            result["original_metrics"] = original_metrics  # Include original portfolio metrics
+
+            # Attach original portfolio metrics and symbols
+            result["original_metrics"] = original_metrics
+            result["original_symbols"] = symbols  # original order
+            result["original_weights"] = weights
+
+            # Ensure optimized symbols are returned too
+            if "optimized_weights" in result and "optimized_symbols" not in result:
+                result["optimized_symbols"] = symbols  # fallback if optimizer just reorders weights
+
             return jsonify(result), 200 if result.get("success") else 500
 
     except Exception as e:
