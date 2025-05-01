@@ -135,16 +135,25 @@ def optimize_portfolio():
         if not survey or not symbols or not weights:
             return jsonify({"error": "Missing required fields: survey, symbols, weights"}), 400
 
+        # Step 1: Calculate original portfolio metrics
+        price_dict = fetch_multiple_series(symbols)
+        price_df = align_price_series(price_dict)
+        weights_array = np.array(weights)
+        original_metrics = compute_portfolio_metrics(price_df, weights_array)
+
+        # Step 2: Optimization
         add_assets = survey.get("addAssets", False)
 
         if add_assets:
             return jsonify({"message": "Asset addition optimization not yet implemented."}), 501
         else:
             result = rebalance_portfolio(survey, symbols, weights)
+            result["original_metrics"] = original_metrics  # Include original portfolio metrics
             return jsonify(result), 200 if result.get("success") else 500
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
     
 @api.route("/api/indicator/<symbol>", methods=["GET"])
 def get_stock_indicators(symbol):

@@ -47,7 +47,7 @@ def rebalance_portfolio(survey: dict, symbols: list, weights: list):
         return {
             "success": True,
             "optimized_weights": list(optimized_weights),
-            "metrics": optimized_metrics,
+            "optimized_metrics": optimized_metrics,
         }
     else:
         return {
