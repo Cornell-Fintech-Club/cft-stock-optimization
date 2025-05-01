@@ -66,7 +66,9 @@ if __name__ == "__main__":
     }
     symbols = ["AAPL", "MSFT", "JNJ", "PFE", "JPM", "GS", "XOM", "CVX", "WMT", "PG"]
     weights = [0.15, 0.10, 0.10, 0.05, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10]
-
-    result = rebalance_portfolio(survey, symbols, weights)
     from pprint import pprint
+    print("Metric Ranges:")
+    pprint(get_target_ranges(survey=survey))
+    print("\n")
+    result = rebalance_portfolio(survey, symbols, weights)
     pprint(result)

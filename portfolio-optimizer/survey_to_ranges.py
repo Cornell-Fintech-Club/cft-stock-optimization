@@ -171,7 +171,8 @@ if __name__ == "__main__":
         "age_range": "18-35",
         "volatility_tolerance": "high",
         "time_horizon": "long",
-        "investment_goal": "growth"
+        "investment_goal": "growth",
+        "selectedSectors": ["technology","health"]
     }
     from pprint import pprint
     pprint(get_target_ranges(survey))
