@@ -16,6 +16,18 @@ from app.scraper import fetch_and_store_data
 
 app = create_app()
 
+# def to_native(value):
+#     """Convert NumPy numbers to native Python, leave others untouched."""
+#     if value is None:
+#         return None
+#     # NumPy float / int
+#     if hasattr(value, "item"):
+#         try:
+#             return value.item()
+#         except Exception:
+#             pass
+#     return value
+
 def fetch_close_prices_and_sector(ticker):
     records = (
         OHLCData.query.filter_by(ticker=ticker)
@@ -26,8 +38,7 @@ def fetch_close_prices_and_sector(ticker):
         return None, None
 
     close_prices = pd.Series({r.timestamp: r.close for r in records})
-    sector = records[0].sector if records else None
-
+    sector = records[0].sector
     return close_prices, sector
 
 def fetch_market_prices():
@@ -56,8 +67,7 @@ def populate_stock_indicators():
         db.session.execute(text('TRUNCATE TABLE stock_indicators;'))
         db.session.commit()
 
-        tickers = db.session.query(OHLCData.ticker).distinct().all()
-        tickers = [t[0] for t in tickers]
+        tickers = [t[0] for t in db.session.query(OHLCData.ticker).distinct().all()]
         print(f"Found {len(tickers)} tickers. Calculating indicators...")
 
         market_prices = fetch_market_prices()
@@ -69,33 +79,39 @@ def populate_stock_indicators():
                 continue
 
             try:
-                expected_return = calculate_expected_return(prices)
-                volatility = calculate_volatility(prices)
-                sharpe_ratio = calculate_sharpe_ratio(prices)
-                max_drawdown = calculate_max_drawdown(prices)
-                value_at_risk = calculate_var(prices)
+                # compute raw indicators (may be NumPy types)
+                exp_ret = calculate_expected_return(prices)
+                vol      = calculate_volatility(prices)
+                sr       = calculate_sharpe_ratio(prices)
+                mdd      = calculate_max_drawdown(prices)
+                var      = calculate_var(prices)
 
                 beta = alpha = None
                 if market_prices is not None:
-                    combined = pd.concat([prices, market_prices], axis=1, join='inner').pct_change().dropna()
+                    combined = (
+                        pd.concat([prices, market_prices], axis=1, join='inner')
+                          .pct_change().dropna()
+                    )
                     combined.columns = ["stock", "market"]
                     if not combined.empty:
-                        beta = calculate_beta(combined["stock"], combined["market"])
+                        beta  = calculate_beta(combined["stock"], combined["market"])
                         alpha = calculate_alpha(combined["stock"], combined["market"], beta)
 
+                # fetch or create model instance
                 indicator = db.session.get(StockIndicator, ticker)
                 if not indicator:
                     indicator = StockIndicator(ticker=ticker)
 
-                indicator.sector = sector
-                indicator.expected_return = expected_return
-                indicator.volatility = volatility
-                indicator.sharpe_ratio = sharpe_ratio
-                indicator.max_drawdown = max_drawdown
-                indicator.value_at_risk = value_at_risk
-                indicator.beta = beta
-                indicator.alpha = alpha
-                indicator.last_updated = datetime.now(timezone.utc)
+                # assign native-Python values
+                indicator.sector            = sector
+                indicator.expected_return   = to_native(exp_ret)
+                indicator.volatility        = to_native(vol)
+                indicator.sharpe_ratio      = to_native(sr)
+                indicator.max_drawdown      = to_native(mdd)
+                indicator.value_at_risk     = to_native(var)
+                indicator.beta              = to_native(beta)
+                indicator.alpha             = to_native(alpha)
+                indicator.last_updated      = datetime.now(timezone.utc)
 
                 db.session.merge(indicator)
                 print(f"Indicators calculated for {ticker} ({sector}).")
