@@ -96,4 +96,8 @@ if __name__ == "__main__":
         weights = [0.25, 0.25, 0.25, 0.25]
 
         result = optimize_with_greedy_addition(survey, symbols, weights)
+        
+        print("Desired Ranges:")
+        pprint(get_target_ranges(survey))
+        print("-"*30)
         pprint(result)

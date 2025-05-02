@@ -8,6 +8,7 @@ from survey_to_ranges import get_target_ranges
 def rebalance_portfolio(survey: dict, symbols: list, weights: list):
     """
     Adjust portfolio weights to fit within indicator target ranges.
+    Prevents weights from dropping below 0.2 for any stock.
     """
     target_ranges = get_target_ranges(survey)
 
@@ -24,20 +25,34 @@ def rebalance_portfolio(survey: dict, symbols: list, weights: list):
         metrics = compute_portfolio_metrics(price_df, np.array(w))
         penalty = 0
 
+        # Priority weights (higher means more important)
+        priority_weights = {
+            "expected_return": 5.0,
+            "alpha": 4.0,
+            "sharpe_ratio": 3.0,
+            "beta": 2.0,
+            "volatility": 2.0,
+            "max_drawdown": 1.5,
+            "value_at_risk": 1.0,
+            "diversification_score": 0.5,
+        }
+
         for key, (lo, hi) in target_ranges.items():
             val = metrics.get(key)
             if val is None:
                 continue
+            weight = priority_weights.get(key, 1.0)
             if lo is not None and val < lo:
-                penalty += (lo - val) ** 2
+                penalty += weight * (lo - val) ** 2
             if hi is not None and val > hi:
-                penalty += (val - hi) ** 2
+                penalty += weight * (val - hi) ** 2
 
         return penalty
 
     # Step 3: Constraints and bounds
     constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
-    bounds = [(0.0, 1.0)] * n
+    min_weight = 0.02  # Minimum weight per stock (not 0)
+    bounds = [(min_weight, 1.0) for _ in range(n)]
 
     result = minimize(loss, weights, method='SLSQP', bounds=bounds, constraints=constraints)
 
@@ -54,7 +69,6 @@ def rebalance_portfolio(survey: dict, symbols: list, weights: list):
             "success": False,
             "message": result.message
         }
-
 
 # Example usage
 if __name__ == "__main__":
