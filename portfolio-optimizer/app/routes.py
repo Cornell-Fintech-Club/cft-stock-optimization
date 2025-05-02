@@ -5,6 +5,7 @@ from app.scraper import fetch_and_store_data
 import numpy as np
 from datetime import datetime
 from optimizers.optimize_rebalance import rebalance_portfolio
+from optimizers.optimize_add import optimize_with_greedy_addition
 
 from analytics.data import fetch_daily_adjusted, fetch_multiple_series, align_price_series
 from analytics.indicators import (
@@ -145,7 +146,7 @@ def optimize_portfolio():
         add_assets = survey.get("addAssets", False)
 
         if add_assets:
-            return jsonify({"message": "Asset addition optimization not yet implemented."}), 501
+            result = optimize_with_greedy_addition(survey,symbols,weights)
         else:
             result = rebalance_portfolio(survey, symbols, weights)
 

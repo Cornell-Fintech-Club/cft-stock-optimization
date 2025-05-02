@@ -35,11 +35,11 @@ def compute_portfolio_metrics(price_df: pd.DataFrame, weights: np.ndarray, risk_
     daily_returns = price_df.pct_change().dropna()
 
     # Core metrics
-    expected_returns = daily_returns.mean()
+    expected_returns = daily_returns.mean() * 252  # annualized
     cov_matrix = daily_returns.cov()
 
     portfolio_return = calculate_portfolio_expected_return(expected_returns, weights)
-    portfolio_volatility = calculate_portfolio_volatility(cov_matrix.values, weights)
+    portfolio_volatility = calculate_portfolio_volatility(cov_matrix.values, weights) * np.sqrt(252)
     sharpe_ratio = calculate_sharpe_ratio((price_df @ weights), risk_free_rate)
 
     # Diversification score
