@@ -137,7 +137,7 @@ if __name__ == "__main__":
         survey = {
             "age_range": "18-35",
             "volatility_tolerance": "high",
-            "time_horizon": "short",
+            "time_horizon": "long",
             "investment_goal": "growth",
             "selectedSectors": ["technology", "health", "energy"]
         }

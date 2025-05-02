@@ -4,9 +4,8 @@ import pandas as pd
 # Individual Stock Indicators
 
 def calculate_expected_return(prices: pd.Series) -> float:
-    """Computes average daily return."""
     returns = prices.pct_change().dropna()
-    return returns.mean()
+    return (1 + returns.mean())**252 - 1
 
 def calculate_volatility(prices: pd.Series) -> float:
     """Computes standard deviation of daily returns."""
@@ -46,7 +45,8 @@ def calculate_beta(stock_returns: pd.Series, market_returns: pd.Series) -> float
     return np.cov(stock_returns, market_returns)[0, 1] / np.var(market_returns)
 
 def calculate_alpha(stock_returns: pd.Series, market_returns: pd.Series, beta: float, risk_free_rate: float = 0.02) -> float:
-    return stock_returns.mean() - (risk_free_rate + beta * (market_returns.mean() - risk_free_rate))
+    daily_alpha = stock_returns.mean() - (risk_free_rate / 252 + beta * (market_returns.mean() - risk_free_rate / 252))
+    return (1 + daily_alpha)**252 - 1
 
 def calculate_diversification_score(corr_matrix: pd.DataFrame) -> float:
     """Lower average correlation implies higher diversification."""
