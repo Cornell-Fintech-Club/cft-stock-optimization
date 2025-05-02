@@ -6,7 +6,7 @@ from analytics.sector_scraper import scrape_top_100_tickers
 from analytics.sector_scraper import SECTOR_FILTERS
 from populate_indicators import populate_stock_indicators
 
-DB_URL = "postgresql://kevinbiliguun:your_password@localhost/portfolio_optimizer"
+DB_URL = "postgresql://gregoryparent:your_password@localhost/portfolio_optimizer"
 engine = create_engine(DB_URL)
 
 
@@ -34,10 +34,6 @@ def store_dataframe(df: pd.DataFrame, sector: str):
     df["sector"] = sector
 
     df = df[["ticker", "timestamp", "open", "high", "low", "close", "volume", "sector"]]
-
-    df.to_sql("ohlc_data", engine, if_exists="append", index=False, method="multi")
-
-    df["sector"] = sector
     df.to_sql("ohlc_data", engine, if_exists="append", index=False, method="multi")
 
 

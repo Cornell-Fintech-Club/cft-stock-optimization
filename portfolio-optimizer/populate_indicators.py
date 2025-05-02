@@ -16,17 +16,17 @@ from app.scraper import fetch_and_store_data
 
 app = create_app()
 
-# def to_native(value):
-#     """Convert NumPy numbers to native Python, leave others untouched."""
-#     if value is None:
-#         return None
-#     # NumPy float / int
-#     if hasattr(value, "item"):
-#         try:
-#             return value.item()
-#         except Exception:
-#             pass
-#     return value
+def to_native(value):
+    """Convert NumPy numbers to native Python, leave others untouched."""
+    if value is None:
+        return None
+    # NumPy float / int
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            pass
+    return value
 
 def fetch_close_prices_and_sector(ticker):
     records = (
