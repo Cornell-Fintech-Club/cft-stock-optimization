@@ -13,3 +13,9 @@ if answer=="y" or answer == "yes":
 # http://127.0.0.1:5000/ohlc/AAPL?start_date=2022-01-01&end_date=2022-03-01
 else:
     print(url)
+
+
+# import yfinance as yf
+
+# ticker = yf.Ticker("AAPL")
+# print(ticker.info["shortName"])  # Output: 'Apple Inc.'

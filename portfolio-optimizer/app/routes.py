@@ -6,7 +6,7 @@ import numpy as np
 from datetime import datetime, timedelta, timezone
 from optimizers.optimize_rebalance import rebalance_portfolio
 from optimizers.optimize_add import optimize_with_greedy_addition
-
+import yfinance as yf
 
 from analytics.data import fetch_daily_adjusted, fetch_multiple_series, align_price_series
 from analytics.indicators import (
@@ -123,8 +123,6 @@ def portfolio_metrics():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-
-
 @api.route('/api/price_history/<string:ticker>', methods=['GET'])
 def get_price_history(ticker):
     try:
@@ -142,12 +140,7 @@ def get_price_history(ticker):
 
         result = [
             {
-                "timestamp": record.timestamp.strftime('%Y-%m-%d'),
                 "open": record.open,
-                "high": record.high,
-                "low": record.low,
-                "close": record.close,
-                "volume": record.volume,
             }
             for record in records
         ]
@@ -156,7 +149,26 @@ def get_price_history(ticker):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    
+@api.route('/api/stocks', methods=['GET'])
+def get_all_stocks():
+    tickers = StockIndicator.query.with_entities(StockIndicator.ticker).all()
+    result = []
+
+    for t in tickers:
+        try:
+            info = yf.Ticker(t.ticker).info
+            name = info.get("shortName", "N/A")
+        except Exception:
+            name = "N/A"
+        result.append({
+            "ticker": t.ticker,
+            "name": name
+        })
+
+    return jsonify({"stocks": result})  
+
+
+
 api2 = Blueprint("optimizer", __name__)
 
 @api2.route("/api/optimize_portfolio", methods=["POST"])
