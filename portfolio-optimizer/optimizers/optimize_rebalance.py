@@ -52,7 +52,7 @@ def rebalance_portfolio(survey: dict, symbols: list, weights: list):
     # Step 3: Constraints and bounds
     constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
     min_weight = 0.02  # Minimum weight per stock (not 0)
-    bounds = [(min_weight, 1.0) for _ in range(n)]
+    bounds = [(min_weight, .35 ) for _ in range(n)]
 
     result = minimize(loss, weights, method='SLSQP', bounds=bounds, constraints=constraints)
 
