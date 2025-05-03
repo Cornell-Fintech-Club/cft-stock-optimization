@@ -65,13 +65,13 @@ def compute_portfolio_metrics(price_df: pd.DataFrame, weights: np.ndarray, risk_
 
     return {
         "expected_return": portfolio_return,
-        "volatility": portfolio_volatility,
-        "sharpe_ratio": sharpe_ratio,
+        # "volatility": portfolio_volatility,
+        # "sharpe_ratio": sharpe_ratio,
         "diversification_score": diversification_score,
-        "max_drawdown": max_drawdown,
-        "value_at_risk": value_at_risk,
+        # "max_drawdown": max_drawdown,
+        # "value_at_risk": value_at_risk,
         "beta": beta,
-        "alpha": alpha
+        # "alpha": alpha
     }
 
 def compute_correlation_matrix(price_df: pd.DataFrame) -> pd.DataFrame:
