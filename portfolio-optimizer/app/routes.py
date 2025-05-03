@@ -3,9 +3,10 @@ from app.models import OHLCData, StockIndicator
 from app import db
 from app.scraper import fetch_and_store_data 
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from optimizers.optimize_rebalance import rebalance_portfolio
 from optimizers.optimize_add import optimize_with_greedy_addition
+import yfinance as yf
 
 from analytics.data import fetch_daily_adjusted, fetch_multiple_series, align_price_series
 from analytics.indicators import (
@@ -121,6 +122,52 @@ def portfolio_metrics():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@api.route('/api/price_history/<string:ticker>', methods=['GET'])
+def get_price_history(ticker):
+    try:
+        one_year_ago = datetime.now(timezone.utc) - timedelta(days=365)
+        records = (
+            db.session.query(OHLCData)
+            .filter(OHLCData.ticker == ticker.upper())
+            .filter(OHLCData.timestamp >= one_year_ago)
+            .order_by(OHLCData.timestamp.asc())
+            .all()
+        )
+
+        if not records:
+            return jsonify({"message": f"No price data found for {ticker}"}), 404
+
+        result = [
+            {
+                "open": record.open,
+            }
+            for record in records
+        ]
+        return jsonify({"ticker": ticker.upper(), "price_history": result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api.route('/api/stocks', methods=['GET'])
+def get_all_stocks():
+    tickers = StockIndicator.query.with_entities(StockIndicator.ticker).all()
+    result = []
+
+    for t in tickers:
+        try:
+            info = yf.Ticker(t.ticker).info
+            name = info.get("shortName", "N/A")
+        except Exception:
+            name = "N/A"
+        result.append({
+            "ticker": t.ticker,
+            "name": name
+        })
+
+    return jsonify({"stocks": result})  
+
+
 
 api2 = Blueprint("optimizer", __name__)
 
