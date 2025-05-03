@@ -26,12 +26,12 @@ def get_target_ranges(survey):
         },
         "56+": {
             "expected_return": (0.04, 0.06),
-            "volatility": (0, 0.08),
-            "sharpe_ratio": (1.0, float("inf")),
+            # "volatility": (0, 0.08),
+            # "sharpe_ratio": (1.0, float("inf")),
             "beta": (0, 0.8),
-            "alpha": (0.0, 0.01),
-            "max_drawdown": (None, 0.10),
-            "var": (-0.05, None),
+            # "alpha": (0.0, 0.01),
+            # "max_drawdown": (None, 0.10),
+            # "var": (-0.05, None),
             "diversification_score": (0.9, float("inf")),
         }
     }

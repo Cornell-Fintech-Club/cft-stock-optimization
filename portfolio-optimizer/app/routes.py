@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from optimizers.optimize_rebalance import rebalance_portfolio
 from optimizers.optimize_add import optimize_with_greedy_addition
 import yfinance as yf
+import copy
 
 from analytics.data import fetch_daily_adjusted, fetch_multiple_series, align_price_series
 from analytics.indicators import (
@@ -178,25 +179,37 @@ def optimize_portfolio():
         survey  = data.get("survey")
         symbols = data.get("symbols", [])
         weights = data.get("weights", [])
+        print("Survey:", survey)
+        print("Symbols:", symbols)
+        print("Weights:", weights)
 
         if not survey or not symbols or not weights:
             return jsonify({"error": "Missing required fields: survey, symbols, weights"}), 400
-
+        print("1")
         # Step 1: Calculate original portfolio metrics
+        print("2")
         price_dict       = fetch_multiple_series(symbols)
+        print("3")
         price_df         = align_price_series(price_dict)
+        print("4")
         weights_array    = np.array(weights, dtype=float)
+        print("5")
         original_metrics = compute_portfolio_metrics(price_df, weights_array)
 
         # Step 2: Choose optimizer
+        print("6")
         if survey.get("addAssets", False):
+            print("20")
             # Greedy-addition optimizer
             result = optimize_with_greedy_addition(survey, symbols.copy(), weights.copy())
+            print("21")
         else:
             # Pure rebalance optimizer
+            print("7")
             result = rebalance_portfolio(survey, symbols.copy(), weights.copy())
-
+        
         # Always attach the “before” snapshot
+        print("8")
         result.setdefault("original_metrics", original_metrics)
         result.setdefault("original_symbols",  symbols)
         result.setdefault("original_weights",  weights)
@@ -205,6 +218,7 @@ def optimize_portfolio():
         if result.get("optimized_weights") and "optimized_symbols" not in result:
             result["optimized_symbols"] = symbols
 
+        print(result)
         status_code = 200 if result.get("success") else 500
         return jsonify(result), status_code
 

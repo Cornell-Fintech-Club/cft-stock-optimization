@@ -10,18 +10,16 @@ def rebalance_portfolio(survey: dict, symbols: list, weights: list):
     Adjust portfolio weights to fit within indicator target ranges.
     Prevents weights from dropping below 0.2 for any stock.
     """
-    target_ranges = get_target_ranges(survey)
 
+    target_ranges = get_target_ranges(survey)
     # Step 1: Pull price data for the given symbols
     price_dict = fetch_multiple_series(symbols)
     price_df = align_price_series(price_dict)
     n = len(symbols)
-
     # Step 2: Define loss function based on how far current metrics are from target
     def loss(w):
         if np.any(w < 0) or not np.isclose(np.sum(w), 1):
             return 1e6
-
         metrics = compute_portfolio_metrics(price_df, np.array(w))
         penalty = 0
 
@@ -50,7 +48,7 @@ def rebalance_portfolio(survey: dict, symbols: list, weights: list):
     bounds = [(min_weight, 1 ) for _ in range(n)]
 
     result = minimize(loss, weights, method='SLSQP', bounds=bounds, constraints=constraints)
-
+    print("F")
     if result.success:
         optimized_weights = result.x
         optimized_metrics = compute_portfolio_metrics(price_df, optimized_weights)
@@ -58,6 +56,7 @@ def rebalance_portfolio(survey: dict, symbols: list, weights: list):
             "success": True,
             "optimized_weights": list(optimized_weights),
             "optimized_metrics": optimized_metrics,
+            "optimized_symbols": symbols
         }
     else:
         return {

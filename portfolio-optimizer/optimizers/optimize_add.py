@@ -40,15 +40,28 @@ def query_stock_to_fix(metric, direction, sectors, exclude):
     return candidates[0][1] if candidates else None
 
 def optimize_with_greedy_addition(survey, symbols, weights, max_additions=3):
+    print("survey:", survey)
+
+    print("symbols:", symbols)
+
+    print("weights:", weights)
+
+
     """Greedily add stocks to fix metrics one at a time."""
+    print("AA")
     target_ranges = get_target_ranges(survey)
     selected_sectors = survey.get("selectedSectors", [])
+    print("BB")
 
     price_dict = fetch_multiple_series(symbols)
-    price_df = align_price_series(price_dict)
-    metrics = compute_portfolio_metrics(price_df, np.array(weights))
+    print("CC")
 
+    price_df = align_price_series(price_dict)
+    print("DD")
+    metrics = compute_portfolio_metrics(price_df, np.array(weights))
+    print("EE")
     out_of_range = get_stock_deficiencies(metrics, target_ranges)
+    print("FF")
 
     added = []
     for metric, direction in out_of_range.items():
@@ -75,7 +88,10 @@ def optimize_with_greedy_addition(survey, symbols, weights, max_additions=3):
             break
 
     # Final rebalance
+    print("Symbols:", symbols,"\n Weights:",weights)
     result = rebalance_portfolio(survey, symbols, weights)
+    print("\n")
+    print(result)
     result["added_stocks"] = added
     return result
 
