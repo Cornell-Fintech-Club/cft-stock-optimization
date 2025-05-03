@@ -174,39 +174,39 @@ api2 = Blueprint("optimizer", __name__)
 @api2.route("/api/optimize_portfolio", methods=["POST"])
 def optimize_portfolio():
     try:
-        data = request.json
-
-        survey = data.get("survey")
-        symbols = data.get("symbols")
-        weights = data.get("weights")
+        data = request.json or {}
+        survey  = data.get("survey")
+        symbols = data.get("symbols", [])
+        weights = data.get("weights", [])
 
         if not survey or not symbols or not weights:
             return jsonify({"error": "Missing required fields: survey, symbols, weights"}), 400
 
         # Step 1: Calculate original portfolio metrics
-        price_dict = fetch_multiple_series(symbols)
-        price_df = align_price_series(price_dict)
-        weights_array = np.array(weights)
+        price_dict       = fetch_multiple_series(symbols)
+        price_df         = align_price_series(price_dict)
+        weights_array    = np.array(weights, dtype=float)
         original_metrics = compute_portfolio_metrics(price_df, weights_array)
 
-        # Step 2: Optimization
-        add_assets = survey.get("addAssets", False)
-
-        if add_assets:
-            result = optimize_with_greedy_addition(survey,symbols,weights)
+        # Step 2: Choose optimizer
+        if survey.get("addAssets", False):
+            # Greedy-addition optimizer
+            result = optimize_with_greedy_addition(survey, symbols.copy(), weights.copy())
         else:
-            result = rebalance_portfolio(survey, symbols, weights)
+            # Pure rebalance optimizer
+            result = rebalance_portfolio(survey, symbols.copy(), weights.copy())
 
-            # Attach original portfolio metrics and symbols
-            result["original_metrics"] = original_metrics
-            result["original_symbols"] = symbols  # original order
-            result["original_weights"] = weights
+        # Always attach the “before” snapshot
+        result.setdefault("original_metrics", original_metrics)
+        result.setdefault("original_symbols",  symbols)
+        result.setdefault("original_weights",  weights)
 
-            # Ensure optimized symbols are returned too
-            if "optimized_weights" in result and "optimized_symbols" not in result:
-                result["optimized_symbols"] = symbols  # fallback if optimizer just reorders weights
+        # If rebalance produced only weights, attach symbols list
+        if result.get("optimized_weights") and "optimized_symbols" not in result:
+            result["optimized_symbols"] = symbols
 
-            return jsonify(result), 200 if result.get("success") else 500
+        status_code = 200 if result.get("success") else 500
+        return jsonify(result), status_code
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
